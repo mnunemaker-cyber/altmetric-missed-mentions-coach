@@ -941,7 +941,7 @@
       c.appendChild(el('<div class="cta-row"><a class="cta-btn" href="'+SUGGEST_FORM_URL+'" target="_blank" rel="noopener">Open the suggest-a-source form <span class="arrow">\u2197</span></a></div>'));
     } else if(kind === 'ROUTE_SUPPORT'){
       c.appendChild(el('<p class="cta-helper">Have the information below on hand before you email Support.</p>'));
-      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-support" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+      c.appendChild(emailCtaRow('cta-support'));
     }
 
     if(state.flags.length){
@@ -989,13 +989,13 @@
 
     if(kind === 'NOT_ELIGIBLE'){
       c.appendChild(el('<p class="cta-helper">Still not sure? Support can take a closer look. Please send this issue and any other information you think is relevant.</p>'));
-      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-ghost" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+      c.appendChild(emailCtaRow('cta-ghost'));
     } else if(kind === 'WAIT_AND_RECHECK'){
       c.appendChild(el('<p class="cta-helper">Still not sure? Support can take a closer look.</p>'));
-      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-ghost" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+      c.appendChild(emailCtaRow('cta-ghost'));
     } else if(kind === 'FIX_AT_SOURCE'){
       c.appendChild(el('<p class="cta-helper">Questions this coach couldn\'t resolve? Reach Support directly.</p>'));
-      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-ghost" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+      c.appendChild(emailCtaRow('cta-ghost'));
     }
 
     var actions = el('<div class="actions"></div>');
@@ -1005,6 +1005,22 @@
     c.appendChild(actions);
 
     return c;
+  }
+
+  // Support email button, with a "copy address" fallback for anyone whose browser/OS
+  // has no default mail app registered (mailto: links silently do nothing there).
+  function emailCtaRow(btnClass){
+    var row = el('<div class="cta-row" style="align-items:center;gap:10px;flex-wrap:wrap;"></div>');
+    row.appendChild(el('<a class="cta-btn '+btnClass+'" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a>'));
+    var copyBtn = el('<button type="button" class="linkbtn" style="background:none;border:none;padding:4px 2px;font:inherit;color:inherit;text-decoration:underline;cursor:pointer;">Copy address instead</button>');
+    copyBtn.addEventListener('click', function(){
+      copyText(SUPPORT_EMAIL, function(ok){
+        copyBtn.textContent = ok ? 'Copied' : 'Couldn\'t copy \u2013 select and copy manually';
+        setTimeout(function(){ copyBtn.textContent = 'Copy address instead'; }, 1800);
+      });
+    });
+    row.appendChild(copyBtn);
+    return row;
   }
 
   function copyText(text, cb){
