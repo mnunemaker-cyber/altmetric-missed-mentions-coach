@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Missed Mentions Coach</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy:#1d2835;
+    --navy-soft:#2c3a4a;
+    --canvas:#eceff1;
+    --card:#ffffff;
+    --border:#dde3e7;
+    --text:#1d2835;
+    --text-muted:#5f7080;
+    --blue:#1d88e5;
+    --blue-deep:#1565c0;
+    --pink:#d81b60;
+    --purple:#673ab7;
+    --red:#e53935;
+    --amber:#ffb300;
+    --gray:#757575;
+    --green:#2e7d32;
+    --focus:#1565c0;
+  }
+  :root:not([data-theme="light"]){
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --navy:#0f151c;
+      --canvas:#12181f;
+      --card:#1b2530;
+      --border:#2b3846;
+      --text:#e7edf2;
+      --text-muted:#93a4b3;
+    }
+  }
+  :root[data-theme="dark"]{
+    --navy:#0f151c;
+    --canvas:#12181f;
+    --card:#1b2530;
+    --border:#2b3846;
+    --text:#e7edf2;
+    --text-muted:#93a4b3;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canvas);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+  }
+
+  .topbar{
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-text{line-height:1.15;}
+  .brand-text .name{font-weight:700;font-size:17px;letter-spacing:0.2px;}
+  .brand-text .sub{font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);font-weight:600;}
+  .brand-tool{font-size:13px;color:var(--text-muted);border-left:1px solid var(--border);padding-left:14px;margin-left:4px;}
+
+  .progress-track{
+    display:flex;
+    gap:6px;
+    align-items:center;
+  }
+  .progress-dot{
+    width:7px;height:7px;border-radius:50%;background:var(--border);
+  }
+  .progress-dot.done{background:var(--blue-deep);}
+  .progress-dot.current{background:var(--blue);box-shadow:0 0 0 3px rgba(29,136,229,0.18);}
+
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:36px 20px 80px;
+  }
+
+  .path-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--blue-deep);
+    margin-bottom:10px;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:32px 32px 28px;
+  }
+
+  h1{font-size:26px;margin:0 0 10px;line-height:1.25;}
+  h2{font-size:20px;margin:0 0 8px;line-height:1.3;}
+  p{line-height:1.55;color:var(--text-muted);margin:0 0 14px;font-size:15px;}
+  p.lead{color:var(--text);font-size:16px;}
+
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin:20px 0 6px;
+  }
+  .opt{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    text-align:left;
+    width:100%;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+    border-radius:6px;
+    padding:14px 16px;
+    font-size:15px;
+    cursor:pointer;
+    font-family:inherit;
+    transition:border-color .12s ease, background .12s ease;
+  }
+  .opt:hover{border-color:var(--blue-deep);background:rgba(21,101,192,0.05);}
+  .opt:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+  .opt .dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex:none;}
+  .opt .optcopy .otitle{font-weight:600;display:block;}
+  .opt .optcopy .odesc{color:var(--text-muted);font-size:13px;display:block;margin-top:2px;}
+
+  .field{margin:18px 0;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text);}
+  .field input[type="date"]{
+    font-family:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--border);
+    border-radius:6px;background:var(--card);color:var(--text);
+  }
+
+  .actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;align-items:center;}
+  .btn{
+    font-family:inherit;font-size:14px;font-weight:600;border-radius:6px;
+    padding:10px 18px;cursor:pointer;border:1px solid transparent;
+  }
+  .btn-primary{background:var(--blue-deep);color:#fff;}
+  .btn-primary:hover{background:#0e4d99;}
+  .btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--blue-deep);color:var(--blue-deep);}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+    padding:6px 12px;border-radius:20px;margin-bottom:16px;
+  }
+  .badge .swatch{width:9px;height:9px;border-radius:50%;}
+
+  .badge-submit{background:rgba(46,125,50,0.12);color:var(--green);}
+  .badge-notclick{background:rgba(229,57,53,0.10);color:var(--red);}
+  .badge-support{background:rgba(103,58,183,0.10);color:var(--purple);}
+  .badge-fix{background:rgba(255,179,0,0.14);color:#8a5a00;}
+  .badge-wait{background:rgba(29,136,229,0.10);color:var(--blue-deep);}
+
+  .flagbox{
+    background:rgba(255,179,0,0.08);
+    border:1px solid rgba(255,179,0,0.35);
+    border-radius:6px;
+    padding:12px 14px;
+    font-size:13.5px;
+    color:var(--text);
+    margin:14px 0;
+  }
+  .flagbox.info{background:rgba(29,136,229,0.07);border-color:rgba(29,136,229,0.3);}
+  .flagbox strong{display:block;margin-bottom:3px;font-size:12px;letter-spacing:0.03em;text-transform:uppercase;}
+
+  .summarybox{
+    background:var(--canvas);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:16px 18px;
+    margin-top:18px;
+  }
+  .summarybox h3{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);}
+  .summarybox pre{
+    white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:13.5px;
+    margin:0 0 12px;color:var(--text);line-height:1.6;max-height:280px;overflow-y:auto;
+  }
+  .copybtn{font-size:13px;font-weight:600;color:var(--blue-deep);background:none;border:none;cursor:pointer;padding:0;}
+  .copybtn:hover{text-decoration:underline;}
+
+  .linkline{font-size:14px;margin-top:10px;}
+  .linkline a{color:var(--blue-deep);font-weight:600;text-decoration:none;}
+  .linkline a:hover{text-decoration:underline;}
+
+  .cta-row{margin:18px 0 22px;}
+  .cta-btn{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:inherit;font-size:16px;font-weight:700;
+    padding:15px 26px;border-radius:8px;text-decoration:none;
+    color:#fff;background:var(--blue-deep);
+    box-shadow:0 1px 2px rgba(0,0,0,0.15);
+  }
+  .cta-btn:hover{background:#0e4d99;}
+  .cta-btn.cta-support{background:var(--purple);}
+  .cta-btn.cta-support:hover{background:#4c2a8f;}
+  .cta-btn .arrow{font-weight:400;}
+  .cta-helper{font-size:13.5px;color:var(--text-muted);margin:0 0 10px;}
+  .cta-btn.cta-ghost{
+    background:transparent;color:var(--blue-deep);border:1.5px solid var(--blue-deep);
+    font-size:14px;padding:11px 20px;box-shadow:none;
+  }
+  .cta-btn.cta-ghost:hover{background:rgba(21,101,192,0.06);}
+
+  footer.appfoot{max-width:760px;margin:0 auto;padding:0 20px 40px;text-align:center;color:var(--text-muted);font-size:12px;}
+
+  @media (max-width:520px){
+    .card{padding:24px 18px;}
+    .topbar{padding:12px 16px;}
+    .brand-tool{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-text">
+      <span class="name">Altmetric</span>
+      <span class="sub">Learning</span>
+    </div>
+    <span class="brand-tool">Missed Mentions Coach</span>
+  </div>
+  <div class="progress-track" id="progressTrack" aria-hidden="true"></div>
+</div>
+
+<main>
+  <div class="path-label" id="pathLabel" style="display:none;"></div>
+  <div class="card" id="card"></div>
+</main>
+
+<footer class="appfoot">This coach helps you self-check before reporting. It never submits anything on your behalf. It prepares a summary for you to paste into the right place.</footer>
+
+<script>
+(function(){
+
+  var state = {
+    screen: 'welcome',
+    history: [],
+    answers: {},
+    flags: [],
+    gating: true,      // true while the current missed-mention source type is one the report form covers
+    sourceType: null,
+    redirectNotice: null  // one-time message shown at the top of the next screen, then cleared
+  };
+
+  var SUPPORT_EMAIL = 'support@altmetric.com';
+  var MISSED_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe4vVhVO6lczylb9xIApYhIYPzRRTzBafe8P1DC5rAQ2PLaWw/viewform';
+  var SUGGEST_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSepl3pvPNDV9Wqh8XiQ2vXWubG989MT9YLEJPXYLsN_ApArrg/viewform';
+
+  var HELP = {
+    missedMentions: 'https://help.altmetric.com/en/articles/9802625',
+    suggestSource: 'https://help.altmetric.com/en/articles/9802817',
+    textMining: 'https://help.altmetric.com/en/articles/9802753',
+    collectingMentions: 'https://help.altmetric.com/en/articles/9802561',
+    coverageDates: 'https://help.altmetric.com/en/articles/9802497',
+    identifiers: 'https://help.altmetric.com/en/articles/9803137',
+    unclickableLinks: 'https://help.altmetric.com/en/articles/9807105',
+    detailsPageAccess: 'https://www.altmetric.com/details-page-access/',
+    bookmarklet: 'https://www.altmetric.com/solutions/free-tools/bookmarklet/',
+    doiLookup: 'https://help.altmetric.com/en/articles/9803969'
+  };
+
+  function helpLink(url, label){
+    return '<div class="linkline">Not sure? <a href="'+url+'" target="_blank" rel="noopener">'+label+'</a></div>';
+  }
+
+  var SOURCE_HEX = {
+    'News':'#B60000','Blog':'#E89500','Facebook':'#0937A4','X':'#2F90B9','Bluesky':'#1285FE',
+    'Podcast':'#90329C','YouTube':'#98C973','Policy':'#5A51E8','Patent':'#D45028',
+    'Wikipedia':'#3B2A3D','Guideline':'#14BABC','Seminars':'#F24C5B','Other':'#1D2835'
+  };
+
+  // Source types Altmetric tracks category-wide, from a single coverage start date,
+  // rather than onboarding each individual outlet/account/page. "Never tracked at all"
+  // isn't a meaningful answer for these, so a_tracked skips that option for them.
+  var CATEGORY_WIDE_TYPES = ['X','Bluesky','Wikipedia','Policy','Patent','Guideline','Seminars'];
+
+  // Sources that are public by definition, with no login/paywall to check.
+  var ALWAYS_PUBLIC_TYPES = ['Wikipedia'];
+
+  // Document/reference-type sources with no "comments" feature to ask about.
+  var NO_COMMENTS_TYPES = ['Patent','Policy','Guideline','Wikipedia'];
+
+  var MISSED_COVERED = ['News','Blog','Facebook','X','Bluesky'];
+  var SUGGEST_COVERED = ['Blog','Facebook','YouTube'];
+
+  // Source types that can also be matched by text mining, as a backup to a working
+  // link. Not just News: Policy, Guidelines, and Patents share the same text-mining
+  // path (see help.altmetric.com/en/articles/9802753), even though those three route
+  // to Support rather than the form (state.gating is false for them).
+  var TEXT_MINED_TYPES = ['News','Policy','Guideline','Patent'];
+
+  function el(html){
+    var d = document.createElement('div');
+    d.innerHTML = html.trim();
+    return d.firstChild;
+  }
+  function fmt(str, map){
+    return str.replace(/\{(\w+)\}/g, function(_,k){ return (map && map[k] != null) ? map[k] : ''; });
+  }
+
+  function go(screenId, opts){
+    opts = opts || {};
+    if(!opts.replace){ state.history.push(state.screen); }
+    state.screen = screenId;
+    render();
+  }
+  function back(){
+    if(state.history.length){
+      state.screen = state.history.pop();
+      render();
+    }
+  }
+  function record(key, value){
+    state.answers[key] = value;
+  }
+  function addFlag(text){
+    if(state.flags.indexOf(text) === -1) state.flags.push(text);
+  }
+
+  function daysBetween(dateStr){
+    var then = new Date(dateStr + 'T00:00:00');
+    var now = new Date();
+    return Math.floor((now - then) / 86400000);
+  }
+
+  // ---------- rendering shell ----------
+
+  var PATH_LABELS = {
+    root:'', disambiguator:'',
+    b_source_type:'Suggesting an untracked source',
+    b_blog_rss:'Suggesting an untracked source', b_fb_public:'Suggesting an untracked source',
+    b_yt_channel:'Suggesting an untracked source',
+    a_situation:'Missed mention check', a_timing:'Missed mention check',
+    a_identifier:'Missed mention check',
+    a_sourcetype:'Missed mention check',
+    a_bookreview:'Missed mention check', a_access:'Missed mention check',
+    a_tracked:'Missed mention check', a_content:'Missed mention check',
+    a_locationflag:'Missed mention check', a_textmining_link:'Missed mention check',
+    a_textmining_meta:'Missed mention check'
+  };
+
+  var MISSED_ORDER = ['a_situation','a_timing','a_identifier','a_sourcetype','a_bookreview','a_access','a_tracked','a_content','a_locationflag','a_textmining_link','a_textmining_meta'];
+
+  function updateChrome(){
+    var label = PATH_LABELS[state.screen] || '';
+    var pl = document.getElementById('pathLabel');
+    if(label){ pl.style.display='block'; pl.textContent = label; } else { pl.style.display='none'; }
+
+    var track = document.getElementById('progressTrack');
+    track.innerHTML = '';
+    if(MISSED_ORDER.indexOf(state.screen) !== -1){
+      var idx = MISSED_ORDER.indexOf(state.screen);
+      for(var i=0;i<MISSED_ORDER.length;i++){
+        var cls = 'progress-dot' + (i<idx?' done':'') + (i===idx?' current':'');
+        track.appendChild(el('<span class="'+cls+'"></span>'));
+      }
+    }
+  }
+
+  function setCard(node){
+    var card = document.getElementById('card');
+    card.innerHTML = '';
+    card.appendChild(node);
+    updateChrome();
+    window.scrollTo(0,0);
+  }
+
+  function optionButton(config){
+    // config: {title, desc, color, onClick}
+    var dotHtml = config.color ? '<span class="dot" style="background:'+config.color+'"></span>' : '';
+    var b = el(
+      '<button type="button" class="opt">'+
+        dotHtml+
+        '<span class="optcopy"><span class="otitle">'+config.title+'</span>'+
+        (config.desc ? '<span class="odesc">'+config.desc+'</span>' : '')+
+        '</span>'+
+      '</button>'
+    );
+    b.addEventListener('click', config.onClick);
+    return b;
+  }
+
+  function backRow(){
+    if(!state.history.length) return el('<span></span>');
+    var b = el('<button type="button" class="btn btn-ghost">Back</button>');
+    b.addEventListener('click', back);
+    return b;
+  }
+
+  // ---------- WELCOME / ROOT ----------
+
+  function screenWelcome(){
+    var c = el(
+      '<div>'+
+      '<h1>Is that mention really missing?</h1>'+
+      '<p class="lead">Before you fill out a report, let\'s work through a few quick checks together. Use this coach to get the right outcome the first time, whether that\'s a form, a quick fix, or a note to Support.</p>'+
+      helpLink(HELP.missedMentions,'What are missed mentions?')+
+      '<div class="actions"><button type="button" class="btn btn-primary" id="startBtn">Start</button></div>'+
+      '</div>'
+    );
+    c.querySelector('#startBtn').addEventListener('click', function(){ go('root'); });
+    return c;
+  }
+
+  function screenRoot(){
+    var c = el('<div><h2>What\'s going on?</h2><p>Pick the option that best matches your situation.</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({
+      title:'A specific mention isn\'t showing up',
+      desc:'One post, article, or video that I think Altmetric should have caught.',
+      onClick:function(){ go('a_situation'); }
+    }));
+    opts.appendChild(optionButton({
+      title:'A whole source has never been tracked',
+      desc:'A blog, page, or channel I follow doesn\'t seem to be picked up at all. I\'m not pointing at one specific mention.',
+      onClick:function(){ record('rootPath','suggest-source'); go('b_source_type'); }
+    }));
+    opts.appendChild(optionButton({
+      title:'Not sure which one this is',
+      onClick:function(){ go('disambiguator'); }
+    }));
+    return c;
+  }
+
+  function screenDisambiguator(){
+    var c = el('<div><h2>Quick check</h2><p>Do you have one specific piece of content in mind, such as a post, article, or video, that mentions the research?</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, I have a specific one', onClick:function(){ go('a_situation'); }}));
+    opts.appendChild(optionButton({title:'No, I just don\'t think the source is being watched at all', onClick:function(){ record('rootPath','suggest-source'); go('b_source_type'); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  // ---------- PATH B: SUGGEST A SOURCE ----------
+
+  function screenBSourceType(prefill){
+    var notice = state.redirectNotice;
+    state.redirectNotice = null;
+    var noticeHtml = notice ? '<div class="flagbox info"><strong>Why you\'re here</strong>'+notice+'</div>' : '';
+    var c = el('<div><h2>What kind of source is it?</h2>'+noticeHtml+helpLink(HELP.suggestSource,'Suggesting a new source to be tracked')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    var items = [
+      {t:'Blog', d:'Needs a working RSS feed.', go:'b_blog_rss'},
+      {t:'Facebook Page', d:'Must be a public Page, not a profile or group.', go:'b_fb_public'},
+      {t:'News outlet', d:null, terminal:'news'},
+      {t:'YouTube Channel', d:'The channel itself, not one video.', go:'b_yt_channel'},
+      {t:'Something else', d:'Podcast, policy source, patent database, Wikipedia, clinical guidelines, or other.', terminal:'other'}
+    ];
+    items.forEach(function(it){
+      opts.appendChild(optionButton({
+        title:it.t, desc:it.d,
+        onClick:function(){
+          record('suggestSourceType', it.t);
+          if(it.terminal === 'news'){
+            terminal('ROUTE_SUPPORT', {reason:'News sources are vetted through a separate, internal process rather than a public self-service form. Support can take it from here.'});
+          } else if(it.terminal === 'other'){
+            terminal('ROUTE_SUPPORT', {reason:'There isn\'t a public self-service "suggest a source" path for this source type yet. Support can look into it directly.'});
+          } else {
+            go(it.go);
+          }
+        }
+      }));
+    });
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenBBlogRss(){
+    var c = el('<div><h2>Does the blog have a working RSS feed?</h2><p>A discoverable RSS feed is required. Without one, the blog can\'t be tracked at all, regardless of the form.</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, it has a working feed', onClick:function(){ record('rssFeed','yes'); terminal('SUBMIT_SUGGEST_SOURCE_FORM'); }}));
+    opts.appendChild(optionButton({title:'No, it doesn\'t have one', onClick:function(){ record('rssFeed','no'); terminal('NOT_ELIGIBLE', {reason:'A blog needs a working, discoverable RSS feed before it can be tracked. Without one, suggesting it as a source won\'t work, whatever form it goes through.'}); }}));
+    opts.appendChild(optionButton({title:'I\'m not sure', onClick:function(){ record('rssFeed','not sure'); terminal('ROUTE_SUPPORT', {reason:'If you\'re not sure whether the blog has a working RSS feed, Support can help check that for you rather than risk a "no" that might just be missing information.'}); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenBFbPublic(){
+    var c = el('<div><h2>Is it a public Page specifically?</h2><p>Not a personal profile, a group, or shares/likes on someone else\'s Page.</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, a public Page', onClick:function(){ record('fbPublic','yes'); terminal('SUBMIT_SUGGEST_SOURCE_FORM'); }}));
+    opts.appendChild(optionButton({title:'No, it\'s a profile, group, or shared post', onClick:function(){ record('fbPublic','no'); terminal('NOT_ELIGIBLE', {reason:'Only public Facebook Pages are eligible for tracking. Personal profiles, groups, and individual shares or likes aren\'t.'}); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenBYtChannel(){
+    var c = el('<div><h2>Is this a whole channel, or one video?</h2><p>Suggesting a source works at the channel level.</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'The channel as a whole', onClick:function(){ record('ytChannel','channel'); terminal('SUBMIT_SUGGEST_SOURCE_FORM'); }}));
+    opts.appendChild(optionButton({title:'Just one specific video', onClick:function(){ record('ytChannel','single video'); terminal('NOT_ELIGIBLE', {reason:'Suggesting the channel will help future videos get picked up, but it won\'t retroactively add this one existing video. If you want this specific video considered, that\'s really a missed-mention question about that video, and YouTube isn\'t one of the five source types the missed-mentions form covers, so that would need to go to Support directly.'}); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  // ---------- PATH A: MISSED MENTION ----------
+
+  function screenASituation(){
+    var c = el('<div><h2>What are you seeing?</h2><p>This helps confirm we\'re actually looking at a missing mention.</p>'+helpLink(HELP.missedMentions,'What counts as a missed mention')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({
+      title:'I see the mention listed, but can\'t click through to it',
+      onClick:function(){ terminal('NOT_ELIGIBLE', {reason:'This sounds like a display issue rather than a missing mention. The mention is there; it just isn\'t clickable.', article:'Unclickable links on a Details Page', articleUrl: HELP.unclickableLinks}); }
+    }));
+    opts.appendChild(optionButton({
+      title:'I only see a limited or partial view of the Details Page',
+      onClick:function(){ terminal('NOT_ELIGIBLE', {reason:'This is a separate, known issue with how much of the Details Page you can see, not a missing mention.', article:'Accessing the Altmetric Details Pages', articleUrl: HELP.detailsPageAccess}); }
+    }));
+    opts.appendChild(optionButton({
+      title:'The thing I want tracked is the research article itself',
+      onClick:function(){ terminal('NOT_ELIGIBLE', {reason:'The output isn\'t a "mention" of itself. A mention has to be something else discussing the research (a news story, a post, a blog, and so on), not the paper itself.'}); }
+    }));
+    opts.appendChild(optionButton({
+      title:'I haven\'t checked the Details Page yet, I just assumed',
+      onClick:function(){ terminal('FIX_AT_SOURCE', {reason:'Worth checking the Details Page first, using a <a href="'+HELP.doiLookup+'" target="_blank" rel="noopener">DOI lookup</a> or the <a href="'+HELP.bookmarklet+'" target="_blank" rel="noopener">bookmarklet</a>, before concluding anything is missing. Come back through this coach afterwards if it still looks off.'}); }
+    }));
+    opts.appendChild(optionButton({
+      title:'Something elsewhere genuinely discusses my research and isn\'t showing up at all',
+      desc:'News, a blog, a post, a video, anything like that.',
+      onClick:function(){ go('a_timing'); }
+    }));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenATiming(){
+    var c = el(
+      '<div><h2>When was the mention published?</h2>'+
+      '<p>This decides two things at once: whether it\'s too soon to report, and whether it\'s old enough that it might not be added.</p>'+
+      '<div class="field"><label for="pubdate">Publish date</label><input type="date" id="pubdate"></div>'+
+      '<div class="actions">'+
+        '<button type="button" class="btn btn-ghost" id="notsure">I\'m not sure of the exact date</button>'+
+        '<button type="button" class="btn btn-primary" id="cont" disabled>Continue</button>'+
+      '</div></div>'
+    );
+    var input = c.querySelector('#pubdate');
+    var contBtn = c.querySelector('#cont');
+    input.addEventListener('input', function(){ contBtn.disabled = !input.value; });
+    contBtn.addEventListener('click', function(){
+      var val = input.value;
+      record('publishDate', val);
+      var days = daysBetween(val);
+      if(days < 0){
+        terminal('NOT_ELIGIBLE', {reason:'That date is in the future, so there\'s nothing to check yet.'});
+        return;
+      }
+      if(days < 2){
+        terminal('WAIT_AND_RECHECK', {reason:'The form itself asks that you wait 1&ndash;2 days after publication before reporting, since collection can take a little time. It\'s only been about '+days+' day'+(days===1?'':'s')+'. Check back once 1&ndash;2 days have passed, then come back through this coach if it\'s still missing.'});
+        return;
+      }
+      if(days > 730){
+        addFlag('Mentions older than about 2 years are less likely to be added, especially if the source is hard to re-review at this point. You can still continue, but if it\'s genuinely old, contacting Support directly ('+SUPPORT_EMAIL+') may get you a clearer answer than the self-service form.');
+      }
+      go('a_identifier');
+    });
+    var back2 = c.querySelector('#notsure');
+    back2.addEventListener('click', function(){
+      record('publishDate','not sure of exact date');
+      go('a_identifier');
+    });
+    var actions = c.querySelector('.actions');
+    actions.insertBefore(backRow(), actions.firstChild);
+    return c;
+  }
+
+  function goPastAccess(){
+    if(ALWAYS_PUBLIC_TYPES.indexOf(state.sourceType) !== -1){
+      record('publiclyAccessible', 'yes (always public)');
+      go('a_tracked');
+    } else {
+      go('a_access');
+    }
+  }
+
+  function screenAIdentifier(){
+    var c = el('<div><h2>Does the research output have a proper identifier?</h2><p>A DOI, ISBN, Handle, arXiv ID, PMC/PubMed ID, SSRN ID, URI, or URN, registered with the relevant registry (for example, a DOI actually registered with Crossref).</p>'+helpLink(HELP.identifiers,'Scholarly identifiers supported by Altmetric')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, it has one and it\'s properly registered', onClick:function(){ record('identifier','yes'); go('a_sourcetype'); }}));
+    opts.appendChild(optionButton({title:'No, or I\'m not sure', onClick:function(){ record('identifier','no/unsure'); terminal('FIX_AT_SOURCE', {reason:'Nothing can be tracked without a properly registered identifier, regardless of the mention.', article:'Scholarly identifiers supported by Altmetric', articleUrl: HELP.identifiers}); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenASourceType(){
+    var c = el('<div><h2>What kind of source is the mention on?</h2><p>This decides which report form, if any, applies.</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    var items = ['Blog','Bluesky','Guideline','Facebook','News','Patent','Podcast','Policy','Seminars','Wikipedia','X','YouTube','Other'];
+    var labels = {Facebook:'Facebook Page post', Policy:'Policy document', Guideline:'Clinical guideline'};
+    items.forEach(function(it){
+      opts.appendChild(optionButton({
+        title: labels[it] || it,
+        color: SOURCE_HEX[it],
+        onClick:function(){
+          state.sourceType = it;
+          record('sourceType', labels[it] || it);
+          state.gating = MISSED_COVERED.indexOf(it) !== -1;
+          if(it === 'News' || it === 'Blog'){
+            go('a_bookreview');
+          } else {
+            goPastAccess();
+          }
+        }
+      }));
+    });
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenABookreview(){
+    var c = el('<div><h2>Is this specifically a book review?</h2><p>As opposed to a general news article or blog post. Some outlets classify a subset of their content as book reviews behind the scenes.</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({
+      title:'Yes, it\'s a book review',
+      onClick:function(){
+        record('bookReview','yes');
+        terminal('ROUTE_SUPPORT', {reason:'The tool used to add reported mentions can only create News or Blog type entries, so a book review reported through the form risks being miscategorized. Support can handle this one directly by email.', byEmail:true});
+      }
+    }));
+    opts.appendChild(optionButton({title:'No, it\'s a regular article or post', onClick:function(){ record('bookReview','no'); goPastAccess(); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenAAccess(){
+    var c = el('<div><h2>Is the content publicly accessible?</h2><p>Or does it sit behind a login wall or subscription paywall?</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, fully public', onClick:function(){ record('publiclyAccessible','yes'); go('a_tracked'); }}));
+    opts.appendChild(optionButton({title:'No, it requires a login or subscription', onClick:function(){
+      record('publiclyAccessible','no, login/subscription required');
+      if(state.sourceType === 'Bluesky'){
+        addFlag('Bluesky\'s collector can often still retrieve posts that require login to view in the app, because they\'re technically public and the login prompt is a display preference, not real access control. This might still work, but there\'s some chance it\'s genuinely restricted, and if the mention isn\'t added, that may be why.');
+        go('a_tracked');
+      } else {
+        terminal('NOT_ELIGIBLE', {reason:'Content behind a login wall or paywall isn\'t tracked, apart from the Bluesky exception. Since this is on '+labelFor(state.sourceType)+', that rule applies here too. Support can\'t add paywalled or login-gated content either, so this isn\'t something to route onward.'});
+      }
+    }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function labelFor(code){
+    var labels = {Facebook:'a Facebook Page post', Policy:'a policy document', Guideline:'a clinical guideline'};
+    return labels[code] || code;
+  }
+
+  var CATEGORY_LABELS = {
+    'X':'X', 'Bluesky':'Bluesky', 'Wikipedia':'Wikipedia', 'Seminars':'seminars',
+    'Policy':'policy documents', 'Patent':'patents', 'Guideline':'clinical guidelines'
+  };
+
+  function screenATracked(){
+    if(CATEGORY_WIDE_TYPES.indexOf(state.sourceType) !== -1){
+      return screenATrackedCategoryWide();
+    }
+    var c = el('<div><h2>Was this outlet or account already tracked?</h2><p>Not just whether this category of source is tracked in general. Specifically this outlet, blog, or account, as of when the mention was published.</p>'+helpLink(HELP.coverageDates,'Attention sources coverage dates')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({
+      title:'Yes, tracked and it was already tracked at that time',
+      onClick:function(){ record('trackedAtTime','yes'); go('a_content'); }
+    }));
+    opts.appendChild(optionButton({
+      title:'It\'s tracked now, but I think it started being tracked after this mention was published',
+      onClick:function(){
+        record('trackedAtTime','tracked now, but after this mention');
+        if(state.gating){
+          terminal('NOT_ELIGIBLE', {reason:'Mentions can\'t be retroactively added from before an outlet\'s coverage began, even if it\'s tracked now.'});
+        } else {
+          addFlag('This outlet started being tracked after the mention was published, which usually means it falls outside the coverage window. Support will confirm.');
+          go('a_content');
+        }
+      }
+    }));
+    opts.appendChild(optionButton({
+      title:'No, I don\'t think this outlet or account has ever been tracked',
+      onClick:function(){
+        record('trackedAtTime','never tracked at all');
+        if(SUGGEST_COVERED.indexOf(state.sourceType) !== -1){
+          state.redirectNotice = 'This sounds less like a missed mention and more like the source itself was never added to Altmetric in the first place. Let\'s check that instead.';
+          go('b_source_type_prefilled_'+state.sourceType, {replace:false});
+        } else {
+          terminal('ROUTE_SUPPORT', {reason:'This looks like the outlet itself has never been tracked, rather than a one-off missed mention. There\'s no public self-service path for onboarding this source type, so Support needs to take a look.'});
+        }
+      }
+    }));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenATrackedCategoryWide(){
+    var label = CATEGORY_LABELS[state.sourceType] || state.sourceType;
+    var c = el('<div><h2>Was this within the coverage window?</h2><p>'+label+' is tracked as a whole category rather than needing each outlet or account onboarded individually, so this is really just a date question: was the mention published on or after the coverage start date for '+label+'?</p>'+helpLink(HELP.coverageDates,'Attention sources coverage dates')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({
+      title:'Yes, this was published within the coverage window',
+      onClick:function(){ record('trackedAtTime','yes, within coverage window'); go('a_content'); }
+    }));
+    opts.appendChild(optionButton({
+      title:'No, I think this predates when '+label+' coverage began',
+      onClick:function(){
+        record('trackedAtTime','predates coverage window');
+        if(state.gating){
+          terminal('NOT_ELIGIBLE', {reason:'Mentions can\'t be retroactively added from before coverage of '+label+' began.'});
+        } else {
+          addFlag('This predates when coverage of '+label+' began, which usually puts it outside the window. Support will confirm.');
+          go('a_content');
+        }
+      }
+    }));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenAContent(){
+    var noComments = NO_COMMENTS_TYPES.indexOf(state.sourceType) !== -1;
+    var subcopy = noComments
+      ? 'The original document, or a second story that just links to coverage of the research rather than the research itself?'
+      : 'The original post or article, a comment on it, or a second story that just links to coverage of the research rather than the research itself?';
+    var c = el('<div><h2>What kind of content is this, exactly?</h2><p>'+subcopy+'</p><div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'It\'s the original post or article, linking to (or naming) the research directly', onClick:function(){ record('contentType','original, direct'); go('a_locationflag'); }}));
+    if(!noComments){
+      opts.appendChild(optionButton({title:'It\'s a comment on a post or article', onClick:function(){
+        record('contentType','comment');
+        if(state.gating){ terminal('NOT_ELIGIBLE', {reason:'Comments aren\'t tracked, even when the original post or article would be.'}); }
+        else { addFlag('This is a comment rather than the original post, which usually isn\'t tracked. Support will confirm.'); go('a_locationflag'); }
+      }}));
+    }
+    opts.appendChild(optionButton({title:'It links to another story about the research, not to the research itself', desc:'A "second-order citation": for example, Outlet A links to Outlet B\'s story about the paper, not to the paper.', onClick:function(){
+      record('contentType','second-order citation');
+      if(state.gating){ terminal('NOT_ELIGIBLE', {reason:'Second-order citations, meaning a story that links to coverage of the research rather than to the research itself, aren\'t tracked. If the other story (the one it links to) is on a tracked source and links directly to the output, that one might be trackable instead.'}); }
+      else { addFlag('This links to secondary coverage rather than to the research itself, which usually isn\'t tracked. Support will confirm.'); go('a_locationflag'); }
+    }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenALocationFlag(){
+    var c = el(
+      '<div><h2>One thing worth knowing</h2>'+
+      '<div class="flagbox info"><strong>Where the identifier needs to be</strong>'+
+      'The identifier (DOI, etc.) needs to be in the URL of the page the mention links to, the output\'s own landing page, not necessarily visible on the mention itself. Linking to a general homepage for an organization that\'s otherwise tracked isn\'t enough; it has to resolve to a specific, identifiable output page.'+
+      '</div>'+
+      helpLink(HELP.collectingMentions,'Collecting mentions to research outputs')+
+      '<div class="actions" id="actions"></div></div>'
+    );
+    var actions = c.querySelector('#actions');
+    actions.appendChild(backRow());
+    var nextBtn = el('<button type="button" class="btn btn-primary">Got it, continue</button>');
+    nextBtn.addEventListener('click', function(){
+      if(TEXT_MINED_TYPES.indexOf(state.sourceType) !== -1){
+        go('a_textmining_link');
+      } else {
+        finishMissedMentionPath();
+      }
+    });
+    actions.appendChild(nextBtn);
+    return c;
+  }
+
+  // Generic noun for the text-mining screens, since "article" doesn't fit a patent
+  // filing or a policy document the way it fits News.
+  var TEXT_MINING_NOUN = {News:'article', Policy:'document', Guideline:'document', Patent:'patent filing'};
+
+  function screenATextminingLink(){
+    var noun = TEXT_MINING_NOUN[state.sourceType] || 'content';
+    var c = el('<div><h2>Does the '+noun+' include a working link to the paper?</h2><p>A direct link to the DOI, publisher page, PubMed, arXiv, or a similar identifier page.</p>'+helpLink(HELP.textMining,'Text mining')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, there\'s a working link', onClick:function(){ record('newsHasLink','yes'); finishMissedMentionPath(); }}));
+    opts.appendChild(optionButton({title:'No working link', onClick:function(){ record('newsHasLink','no'); go('a_textmining_meta'); }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function screenATextminingMeta(){
+    var noun = TEXT_MINING_NOUN[state.sourceType] || 'content';
+    var c = el('<div><h2>Does the '+noun+'\'s text include an author name and the journal title?</h2><p>News, Policy documents, Clinical Guidelines, and Patents can all be matched by text alone, as a backup to a working link, but only if the text names the author and journal, near a publication date.</p>'+helpLink(HELP.textMining,'Text mining')+'<div class="options" id="opts"></div></div>');
+    var opts = c.querySelector('#opts');
+    opts.appendChild(optionButton({title:'Yes, both are there, and the date lines up', onClick:function(){ record('newsMetaPresent','yes'); finishMissedMentionPath(); }}));
+    opts.appendChild(optionButton({title:'No, one or both are missing, or the date is off', onClick:function(){
+      record('newsMetaPresent','no');
+      var stillWorthWhat = state.gating ? 'submitting the form' : 'flagging to Support';
+      addFlag('This is very possibly why it was missed: without a working link, text mining needs an author name, journal title, and a nearby date to match this '+noun+', and one of those is missing here. It\'s still worth '+stillWorthWhat+'. This just explains the likely cause rather than disqualifying it.');
+      finishMissedMentionPath();
+    }}));
+    var actions = el('<div class="actions"></div>'); actions.appendChild(backRow());
+    c.appendChild(actions);
+    return c;
+  }
+
+  function finishMissedMentionPath(){
+    if(state.gating){
+      terminal('SUBMIT_MISSED_MENTION_FORM');
+    } else {
+      terminal('ROUTE_SUPPORT', {reason:'Everything else checks out, but '+labelFor(state.sourceType)+' isn\'t one of the five source types the missed-mentions form covers (News, Blogs, public Facebook Page posts, X, Bluesky). Support can take it from here.'});
+    }
+  }
+
+  // ---------- TERMINAL SCREENS ----------
+
+  function buildSummaryText(){
+    var a = state.answers;
+    var lines = [];
+    lines.push('Missed Mentions Coach \u2013 session summary');
+    lines.push('');
+    Object.keys(a).forEach(function(k){
+      lines.push(labelForKey(k) + ': ' + a[k]);
+    });
+    if(state.flags.length){
+      lines.push('');
+      lines.push('Notes from this session:');
+      state.flags.forEach(function(f){ lines.push('- ' + stripHtml(f)); });
+    }
+    return lines.join('\n');
+  }
+  function stripHtml(s){ return s.replace(/&mdash;/g,'\u2014').replace(/&ndash;/g,'\u2013').replace(/<[^>]+>/g,''); }
+
+  // What the person will need to have on hand to actually complete the form or email.
+  // The coach never asks for these directly, so it calls them out here instead.
+  function neededInfoFor(kind){
+    if(kind === 'SUBMIT_MISSED_MENTION_FORM'){
+      return ['The identifier (DOI, ISBN, etc.) for the research output', 'The direct URL of the mention itself', 'The name of the source (outlet, blog, account, or channel)'];
+    }
+    if(kind === 'SUBMIT_SUGGEST_SOURCE_FORM'){
+      return ['The name and URL of the source', 'Its RSS feed URL, if it\'s a blog'];
+    }
+    if(kind === 'ROUTE_SUPPORT'){
+      return ['The identifier (DOI, ISBN, etc.) for the research output', 'The direct URL of the mention itself', 'The name and URL of the source', 'Anything else about the situation Support should know'];
+    }
+    return null;
+  }
+
+  function labelForKey(k){
+    var map = {
+      rootPath:'Situation', suggestSourceType:'Source type', rssFeed:'RSS feed present',
+      fbPublic:'Public Page confirmed', ytChannel:'Channel vs. single video',
+      publishDate:'Publish date', identifier:'Identifier registered',
+      sourceType:'Source type', bookReview:'Book review',
+      publiclyAccessible:'Publicly accessible', trackedAtTime:'Tracked at time of publication',
+      contentType:'Content type', newsHasLink:'Has working link', newsMetaPresent:'Author/journal in text'
+    };
+    return map[k] || k;
+  }
+
+  function terminal(kind, opts){
+    opts = opts || {};
+    state.screen = 'terminal_' + kind;
+    render(function(){ return renderTerminal(kind, opts); });
+  }
+
+  function renderTerminal(kind, opts){
+    var badgeMap = {
+      SUBMIT_MISSED_MENTION_FORM: {cls:'badge-submit', color:'var(--green)', text:'Report the missed mention'},
+      SUBMIT_SUGGEST_SOURCE_FORM: {cls:'badge-submit', color:'var(--green)', text:'Suggest this source'},
+      ROUTE_SUPPORT: {cls:'badge-support', color:'var(--purple)', text:'Contact Support'},
+      NOT_ELIGIBLE: {cls:'badge-notclick', color:'var(--red)', text:'Not eligible to report'},
+      FIX_AT_SOURCE: {cls:'badge-fix', color:'#8a5a00', text:'Fixable on your side first'},
+      WAIT_AND_RECHECK: {cls:'badge-wait', color:'var(--blue-deep)', text:'Wait, then recheck'}
+    };
+    var b = badgeMap[kind];
+    var c = el('<div></div>');
+    var badge = el('<div class="badge '+b.cls+'"><span class="swatch" style="background:'+b.color+'"></span>'+b.text+'</div>');
+    c.appendChild(badge);
+
+    var heading, body;
+    switch(kind){
+      case 'SUBMIT_MISSED_MENTION_FORM':
+        heading = 'This looks like a genuine missed mention';
+        body = 'Everything checks out, so this is worth reporting through the missed-mentions form.';
+        break;
+      case 'SUBMIT_SUGGEST_SOURCE_FORM':
+        heading = 'Worth suggesting as a new source';
+        body = 'This source meets the requirements, so it\'s worth submitting through the suggest-a-source form.';
+        break;
+      case 'ROUTE_SUPPORT':
+        heading = 'Best handled by Support directly';
+        body = opts.reason || 'This doesn\'t fit either self-service form, so Support is the right next step.';
+        break;
+      case 'NOT_ELIGIBLE':
+        heading = 'Not something the form can help with';
+        body = opts.reason || 'This doesn\'t meet the requirements for a report.';
+        break;
+      case 'FIX_AT_SOURCE':
+        heading = 'A quick fix on your end first';
+        body = opts.reason || '';
+        break;
+      case 'WAIT_AND_RECHECK':
+        heading = 'Give it a little more time';
+        body = opts.reason || '';
+        break;
+    }
+    c.appendChild(el('<h2>'+heading+'</h2>'));
+    c.appendChild(el('<p class="lead">'+body+'</p>'));
+
+    if(opts.article){
+      var articleHtml = opts.articleUrl
+        ? 'Check the help center article: <a href="'+opts.articleUrl+'" target="_blank" rel="noopener"><strong>'+opts.article+'</strong></a>.'
+        : 'Check the help center article: <strong>'+opts.article+'</strong>.';
+      c.appendChild(el('<p>'+articleHtml+'</p>'));
+    }
+
+    // Primary call to action: the one thing this screen wants the person to do next.
+    if(kind === 'SUBMIT_MISSED_MENTION_FORM'){
+      c.appendChild(el('<p class="cta-helper">Have the information below on hand before you open the form.</p>'));
+      c.appendChild(el('<div class="cta-row"><a class="cta-btn" href="'+MISSED_FORM_URL+'" target="_blank" rel="noopener">Open the missed-mentions form <span class="arrow">\u2197</span></a></div>'));
+    } else if(kind === 'SUBMIT_SUGGEST_SOURCE_FORM'){
+      c.appendChild(el('<p class="cta-helper">Have the information below on hand before you open the form.</p>'));
+      c.appendChild(el('<div class="cta-row"><a class="cta-btn" href="'+SUGGEST_FORM_URL+'" target="_blank" rel="noopener">Open the suggest-a-source form <span class="arrow">\u2197</span></a></div>'));
+    } else if(kind === 'ROUTE_SUPPORT'){
+      c.appendChild(el('<p class="cta-helper">Have the information below on hand before you email Support.</p>'));
+      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-support" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+    }
+
+    if(state.flags.length){
+      state.flags.forEach(function(f){
+        c.appendChild(el('<div class="flagbox"><strong>Worth knowing</strong>'+f+'</div>'));
+      });
+    }
+
+    if(kind === 'SUBMIT_MISSED_MENTION_FORM'){
+      c.appendChild(el('<div class="flagbox info"><strong>Before you go</strong>Even once added, a mention only affects the Attention Score if it\'s a genuine automated-tracking miss. Additions made as a courtesy, for mentions that don\'t fully meet the automated criteria, land in a separate "Misc" tab that doesn\'t count toward the score. The form also caps out at 5 mentions per output per submission; more than that needs a separate submission.</div>'));
+    }
+
+    // Summary + copy box: only where there's actually a form or email to fill in with it.
+    // Outcomes like NOT_ELIGIBLE, FIX_AT_SOURCE, and WAIT_AND_RECHECK have nowhere to paste it.
+    var SUMMARY_KINDS = ['SUBMIT_MISSED_MENTION_FORM','SUBMIT_SUGGEST_SOURCE_FORM','ROUTE_SUPPORT'];
+    if(SUMMARY_KINDS.indexOf(kind) !== -1){
+      var needed = neededInfoFor(kind);
+      if(needed && needed.length){
+        var neededHtml = '<strong>Information you\'ll need</strong><ul style="margin:6px 0 0;padding-left:20px;">'+
+          needed.map(function(n){ return '<li>'+n+'</li>'; }).join('')+'</ul>';
+        c.appendChild(el('<div class="flagbox info">'+neededHtml+'</div>'));
+      }
+
+      var summaryText = buildSummaryText();
+      if(needed && needed.length){
+        summaryText += '\n\nInformation you\'ll need:\n' + needed.map(function(n){ return '- ' + n; }).join('\n');
+      }
+      var box = el(
+        '<div class="summarybox">'+
+        '<h3>Summary of what you told us</h3>'+
+        '<pre id="summaryPre"></pre>'+
+        '<button type="button" class="copybtn" id="copyBtn">Copy this summary</button>'+
+        '</div>'
+      );
+      box.querySelector('#summaryPre').textContent = summaryText;
+      box.querySelector('#copyBtn').addEventListener('click', function(){
+        var btn = box.querySelector('#copyBtn');
+        copyText(summaryText, function(ok){
+          btn.textContent = ok ? 'Copied' : 'Couldn\'t copy \u2013 select and copy manually';
+          setTimeout(function(){ btn.textContent = 'Copy this summary'; }, 1800);
+        });
+      });
+      c.appendChild(box);
+    }
+
+    if(kind === 'NOT_ELIGIBLE'){
+      c.appendChild(el('<p class="cta-helper">Still not sure? Support can take a closer look. Please send this issue and any other information you think is relevant.</p>'));
+      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-ghost" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+    } else if(kind === 'WAIT_AND_RECHECK'){
+      c.appendChild(el('<p class="cta-helper">Still not sure? Support can take a closer look.</p>'));
+      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-ghost" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+    } else if(kind === 'FIX_AT_SOURCE'){
+      c.appendChild(el('<p class="cta-helper">Questions this coach couldn\'t resolve? Reach Support directly.</p>'));
+      c.appendChild(el('<div class="cta-row"><a class="cta-btn cta-ghost" href="mailto:'+SUPPORT_EMAIL+'">Email '+SUPPORT_EMAIL+'</a></div>'));
+    }
+
+    var actions = el('<div class="actions"></div>');
+    var restartBtn = el('<button type="button" class="btn btn-ghost">Start a new check</button>');
+    restartBtn.addEventListener('click', restart);
+    actions.appendChild(restartBtn);
+    c.appendChild(actions);
+
+    return c;
+  }
+
+  function copyText(text, cb){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ cb(true); }, function(){ cb(false); });
+    } else {
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        cb(true);
+      }catch(e){ cb(false); }
+    }
+  }
+
+  function restart(){
+    state = {screen:'welcome', history:[], answers:{}, flags:[], gating:true, sourceType:null, redirectNotice:null};
+    render();
+  }
+
+  // ---------- router ----------
+
+  function render(overrideFn){
+    if(overrideFn){ setCard(overrideFn()); return; }
+    if(state.screen.indexOf('terminal_') === 0){
+      // handled via terminal() directly; shouldn't normally re-enter here
+      return;
+    }
+    if(state.screen.indexOf('b_source_type_prefilled_') === 0){
+      setCard(screenBSourceType());
+      return;
+    }
+    var map = {
+      welcome: screenWelcome,
+      root: screenRoot,
+      disambiguator: screenDisambiguator,
+      b_source_type: screenBSourceType,
+      b_blog_rss: screenBBlogRss,
+      b_fb_public: screenBFbPublic,
+      b_yt_channel: screenBYtChannel,
+      a_situation: screenASituation,
+      a_timing: screenATiming,
+      a_identifier: screenAIdentifier,
+      a_sourcetype: screenASourceType,
+      a_bookreview: screenABookreview,
+      a_access: screenAAccess,
+      a_tracked: screenATracked,
+      a_content: screenAContent,
+      a_locationflag: screenALocationFlag,
+      a_textmining_link: screenATextminingLink,
+      a_textmining_meta: screenATextminingMeta
+    };
+    var fn = map[state.screen] || screenWelcome;
+    setCard(fn());
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
